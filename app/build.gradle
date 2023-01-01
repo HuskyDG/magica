@@ -36,10 +36,10 @@ android {
             excludes += '**'
         }
     }
-    lintOptions {
-        checkReleaseBuilds false
-    }
     dependenciesInfo {
         includeInApk false
+    }
+    lint {
+        checkReleaseBuilds false
     }
 }

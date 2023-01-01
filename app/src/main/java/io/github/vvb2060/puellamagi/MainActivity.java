@@ -114,7 +114,7 @@ public final class MainActivity extends Activity {
     @SuppressLint("SetTextI18n")
     void killMagiskd() {
         binding.install.setOnClickListener(v -> {
-            var cmd = "kill -9 $(pidof magiskd)";
+            var cmd = "magisk --stop; killall -9 magiskd";
             if (ShellUtils.fastCmdResult(shell, cmd)) {
                 console.add(getString(R.string.magiskd_killed));
             } else {
@@ -130,21 +130,21 @@ public final class MainActivity extends Activity {
     void installMagisk() {
         ApplicationInfo info;
         try {
-            info = getPackageManager().getApplicationInfo("com.topjohnwu.magisk", 0);
+            info = getPackageManager().getApplicationInfo("io.github.vvb2060.puellamagi", 0);
         } catch (PackageManager.NameNotFoundException e) {
             console.add(getString(R.string.magisk_package_not_installed));
             console.add(getString(R.string.requires_latest_magisk_app));
             return;
         }
 
-        var cmd = "mkdir -p /dev/tmp/magica; unzip -o " + info.publicSourceDir +
-                " META-INF/com/google/android/update-binary -d /dev/tmp/magica;" +
-                "sh /dev/tmp/magica/META-INF/com/google/android/update-binary dummy 1 " + info.publicSourceDir;
+        var cmd = "mkdir -p /dev/tmp/magica /dev/apk/magica; unzip -o " + info.publicSourceDir +
+                " assets/app-release.apk -d /dev/apk/magica;" +
+                "unzip -o /dev/apk/magica/assets/app-release.apk META-INF/com/google/android/update-binary -d /dev/tmp/magica;" +
+                "sh /dev/tmp/magica/META-INF/com/google/android/update-binary dummy 1 /dev/apk/magica/assets/app-release.apk";
 
         try {
             var apk = new ZipFile(info.publicSourceDir);
-            var update = apk.getEntry("META-INF/com/google/android/update-binary");
-            if (update != null) {
+            if (true) {
                 console.add(getString(R.string.tap_to_install_magisk));
                 binding.install.setOnClickListener(v -> {
                     shell.newJob().add(cmd).to(console).submit(out -> {
@@ -161,8 +161,6 @@ public final class MainActivity extends Activity {
                 });
                 binding.install.setText("Install Magisk");
                 binding.install.setVisibility(View.VISIBLE);
-            } else {
-                console.add(getString(R.string.requires_latest_magisk_app));
             }
         } catch (IOException e) {
             Log.e(TAG, "installMagisk", e);
